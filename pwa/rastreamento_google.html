@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rastreamento de Localização</title>
+  <style>
+    #map {
+      height: 400px;
+      width: 100%;
+    }
+    #btn-install {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 10px 20px;
+      background-color: #0b3d91;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      z-index: 1000;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>Rastreamento de Localização</h1>
+  <p>Status: <span id="status">Obtendo localização...</span></p>
+
+  <div id="map"></div>
+
+  <button id="btn-install">Instalar App</button>
+
+  <script>
+    let map;
+    let markers = [];
+
+    // Inicializa o mapa
+    function initMap() {
+      // Centralizar mapa em uma posição inicial (ex: Brasil)
+      const initialPos = { lat: -15.7801, lng: -47.9292 };
+      map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 5,
+        center: initialPos,
+      });
+
+      carregarLocalizacoes();
+      capturarLocalizacaoUsuario();
+    }
+
+    // Carrega todas as localizações do backend e cria marcadores
+    function carregarLocalizacoes() {
+      fetch('get_localizacoes.php')
+        .then(response => response.json())
+        .then(data => {
+          if (data.length === 0) {
+            document.getElementById("status").textContent = "Nenhuma localização salva.";
+            return;
+          }
+
+          data.forEach(loc => {
+            const pos = { lat: loc.latitude, lng: loc.longitude };
+            const marker = new google.maps.Marker({
+              position: pos,
+              map: map,
+            });
+            markers.push(marker);
+          });
+
+          // Ajusta zoom para mostrar todos os marcadores
+          let bounds = new google.maps.LatLngBounds();
+          markers.forEach(marker => bounds.extend(marker.getPosition()));
+          map.fitBounds(bounds);
+
+          document.getElementById("status").textContent = `Exibindo ${data.length} localizações.`;
+        })
+        .catch(err => {
+          console.error('Erro ao carregar localizações:', err);
+          document.getElementById("status").textContent = "Erro ao carregar localizações.";
+        });
+    }
+
+    // Captura a localização do usuário e envia para backend
+    function capturarLocalizacaoUsuario() {
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(position => {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+          document.getElementById("status").textContent = `Sua localização: Lat ${lat.toFixed(5)}, Lon ${lon.toFixed(5)}`;
+
+          // Enviar para o backend
+          fetch("salvar_localizacao.php", {
+            method: "POST",
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ latitude: lat, longitude: lon })
+          }).then(() => {
+            // Opcional: recarregar marcadores para incluir a nova localização
+            carregarLocalizacoes();
+          });
+
+        }, () => {
+          document.getElementById("status").textContent = "Erro ao obter sua localização.";
+        });
+      } else {
+        document.getElementById("status").textContent = "Geolocalização não suportada.";
+      }
+    }
+
+    // Código para o botão de instalação do PWA
+    let deferredPrompt;
+    const btnInstall = document.getElementById('btn-install');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      btnInstall.style.display = 'block';
+
+      btnInstall.addEventListener('click', async () => {
+        btnInstall.disabled = true;
+        deferredPrompt.prompt();
+        const choiceResult = await deferredPrompt.userChoice;
+        if (choiceResult.outcome === 'accepted') {
+          console.log('Usuário aceitou a instalação');
+        } else {
+          console.log('Usuário recusou a instalação');
+        }
+        deferredPrompt = null;
+        btnInstall.style.display = 'none';
+      });
+    });
+
+    window.addEventListener('appinstalled', () => {
+      console.log('App instalado com sucesso!');
+      btnInstall.style.display = 'none';
+    });
+  </script>
+
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAKB2VhjGP1YgNyYU1mDPbYdaLcc8-DNaU&callback=initMap"></script>
+</body>
+</html>
