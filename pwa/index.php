@@ -109,7 +109,7 @@
         try {
             const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`, {
                 headers: {
-                    'User-Agent': 'MeuAppDeRastreamento/1.0 (seuemail@example.com)' // OBRIGATÓRIO!
+                    'User-Agent': 'MeuAppDeRastreamento/1.0 (paulo@papijunior.com.br)' // OBRIGATÓRIO!
                 }
             });
             
@@ -314,6 +314,25 @@
         await carregarLocalizacoes(); 
         setInterval(carregarLocalizacoes, 30000); 
     })();
+
+        // ... (TODO O SEU CÓDIGO JAVASCRIPT DO MAPA E GEOLOCALIZAÇÃO) ...
+
+        // CÓDIGO NECESSÁRIO PARA REGISTRAR O SERVICE WORKER (PWA)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                // O escopo './' indica que o Service Worker controlará a pasta atual e subpastas.
+                // O caminho './service-worker.js' assume que ele está na mesma pasta que o pwa.html.
+                navigator.serviceWorker.register('./service-worker.js', { scope: './' }) 
+                    .then(registration => {
+                        console.log('Service Worker registrado com sucesso! Escopo:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.error('Falha no registro do Service Worker:', error);
+                    });
+            });
+        } else {
+            console.warn('Seu navegador não suporta Service Workers, o PWA não funcionará.');
+        }
 
 </script>
 </body>
