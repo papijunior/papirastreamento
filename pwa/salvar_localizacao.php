@@ -1,66 +1,47 @@
 <?php
+// salvar_localizacao.php
+
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 header('Content-Type: application/json');
-$input = json_decode(file_get_contents('php://input'), true);
 
-if (!$input || !isset($input['usuario'], $input['ip'], $input['latitude'], $input['longitude'], $input['dispositivo'])) {
-  http_response_code(400);
-  echo json_encode(['erro' => 'Dados inválidos']);
-  exit;
-}
+$input = file_get_contents('php://input');
+$data = json_decode($input, true);
 
-$usuario = $input['usuario'];
-$ip = $input['ip'];
-$lat = floatval($input['latitude']);
-$lng = floatval($input['longitude']);
-$disp = $input['dispositivo'];
+// Verifica se os dados necessários foram recebidos
+if (isset($data['usuario']) && isset($data['ip']) && isset($data['latitude']) && isset($data['longitude']) && isset($data['dispositivo']) && isset($data['endereco'])) {
+    $usuario = $data['usuario'];
+    $ip = $data['ip'];
+    $latitude = $data['latitude'];
+    $longitude = $data['longitude'];
+    $dispositivo = $data['dispositivo'];
+    $endereco = $data['endereco']; // <--- Nova variável para o endereço
 
-try {
-  $pdo = new PDO('mysql:host=localhost;dbname=rastreamento;charset=utf8', 'rastreador', '123456');
-  $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    try {
+        // Ajuste conforme suas credenciais
+        $pdo = new PDO('mysql:host=localhost;dbname=rastreamento;charset=utf8', 'rastreador', '123456');
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-  // Pega a última localização desse usuário e dispositivo
-  $stmt = $pdo->prepare("SELECT id, latitude, longitude FROM localizacoes WHERE usuario = ? AND dispositivo = ? ORDER BY id DESC LIMIT 1");
-  $stmt->execute([$usuario, $disp]);
-  $ultima = $stmt->fetch(PDO::FETCH_ASSOC);
+        // Prepara a query de inserção com a nova coluna 'endereco'
+        $stmt = $pdo->prepare("INSERT INTO localizacoes (usuario, ip, latitude, longitude, endereco, dispositivo, data_chegada) VALUES (?, ?, ?, ?, ?, ?, NOW())");
+        
+        // Executa a query
+        $stmt->execute([$usuario, $ip, $latitude, $longitude, $endereco, $dispositivo]); // <--- Inclui o endereço aqui
 
-  $agora = date('Y-m-d H:i:s');
+        echo json_encode(['status' => 'sucesso', 'mensagem' => 'Localização salva com sucesso!']);
 
-  if ($ultima) {
-    $latAnt = floatval($ultima['latitude']);
-    $lngAnt = floatval($ultima['longitude']);
-
-    $distancia = sqrt(pow($latAnt - $lat, 2) + pow($lngAnt - $lng, 2));
-
-    if ($distancia < 0.00001) {
-      echo json_encode(['status' => 'repetida', 'msg' => 'Localização igual à última. Não salva.']);
-      exit;
+    } catch (PDOException $e) {
+        http_response_code(500); // Internal Server Error
+        echo json_encode(['status' => 'erro', 'mensagem' => 'Erro de banco de dados: ' . $e->getMessage()]);
+    } catch (Exception $e) {
+        http_response_code(500); // Internal Server Error
+        echo json_encode(['status' => 'erro', 'mensagem' => 'Erro inesperado: ' . $e->getMessage()]);
     }
 
-    $upd = $pdo->prepare("UPDATE localizacoes SET data_saida = ? WHERE id = ?");
-    $upd->execute([$agora, $ultima['id']]);
-  }
-
-  try {
-    //$ins = $pdo->prepare("INSERT INTO localizacoes (usuario, ip, dispositivo, latitude, longitude, data_chegada) VALUES (?, ?, ?, ?, ?, ?)");
-    
-    if (!$ins->execute([$usuario, $ip, $disp, $lat, $lng, $agora])) {
-        $errorInfo = $ins->errorInfo();
-        throw new Exception("Erro ao inserir localização: " . $errorInfo[2]);
-    }
-
-    $ins->execute([$usuario, $ip, $disp, $lat, $lng, $agora]);
-  } catch (\Throwable $th) {
-    echo json_encode(['erro' => 'Erro ao executar SQL: ' . $e->getMessage()]);
-  }
-
-
-  echo json_encode(['status' => 'ok']);
-
-} catch (Exception $e) {
-  http_response_code(500);
-  echo json_encode(['erro' => $e->getMessage()]);
+} else {
+    http_response_code(400); // Bad Request
+    echo json_encode(['status' => 'erro', 'mensagem' => 'Dados incompletos recebidos.']);
 }
+?>
