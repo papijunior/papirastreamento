@@ -6,6 +6,8 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css" />
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="manifest" href="./manifest.json">
+
     <style>
         body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
         h2 { text-align: center; margin: 10px 0; }
@@ -109,7 +111,7 @@
         try {
             const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`, {
                 headers: {
-                    'User-Agent': 'MeuAppDeRastreamento/1.0 (paulo@papijunior.com.br)' // OBRIGATÓRIO!
+                    'User-Agent': 'PapiRastreamento/1.0 (paulo@papijunior.com.br)' // OBRIGATÓRIO!
                 }
             });
             

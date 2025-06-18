@@ -1,7 +1,7 @@
-const CACHE_NAME = "rastreamento-v6"; // *** INCREMENTE A VERSÃO DO CACHE NOVAMENTE ***
+const CACHE_NAME = "rastreamento-v9"; // *** INCREMENTE A VERSÃO DO CACHE NOVAMENTE ***
 const urlsToCache = [
   "./", 
-  "./pwa.html", 
+  "./index.php", 
   "./manifest.json",
   "./icon/logoPJ1.png", 
   "./icon/logoPJ2.png",   

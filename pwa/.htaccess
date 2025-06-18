@@ -1,0 +1,9 @@
+# Desabilita a autenticação HTTP básica para este diretório e subdiretórios
+# Para Apache 2.4+
+<IfModule mod_authz_core.c>
+    Require all granted
+</IfModule>
+# Se por algum motivo ainda precisar do Satisfy Any (menos comum agora):
+# <IfModule mod_authn_core.c>
+#     Satisfy Any
+# </IfModule>
