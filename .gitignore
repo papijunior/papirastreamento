@@ -1,0 +1,9 @@
+.DS_Store
+*.log
+pwa/debug_post.txt
+pwa/localizacoes.txt
+.env
+uploads/fotos/*
+!uploads/fotos/.gitkeep
+uploads/audios/*
+!uploads/audios/.gitkeep

@@ -1,8 +1,8 @@
 {
-  "name": "Rastreamento Pessoal",
-  "short_name": "Rastreio",
-  "description": "Aplicativo de rastreamento de localização em tempo real para equipe.",
-  "start_url": "./index.php",  
+  "name": "PAPI Rastro",
+  "short_name": "Rastro",
+  "description": "Rastreamento de representantes de vendas no mapa.",
+  "start_url": "../login.php",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#2196F3",

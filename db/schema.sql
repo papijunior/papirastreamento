@@ -1,0 +1,120 @@
+CREATE DATABASE IF NOT EXISTS papi_rastro_db
+    CHARACTER SET utf8mb4
+    COLLATE utf8mb4_unicode_ci;
+
+USE papi_rastro_db;
+
+CREATE TABLE IF NOT EXISTS empresas (
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    nome VARCHAR(160) NOT NULL,
+    cnpj VARCHAR(14) NULL,
+    ativo TINYINT(1) NOT NULL DEFAULT 1,
+    valido_ate DATE NULL,
+    criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    atualizado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_empresas_cnpj (cnpj)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS usuarios (
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    empresa_id INT UNSIGNED NULL,
+    usuario VARCHAR(60) NOT NULL,
+    senha_hash VARCHAR(255) NOT NULL,
+    nome VARCHAR(120) NULL,
+    foto VARCHAR(255) NULL,
+    telefone VARCHAR(20) NULL,
+    tipo VARCHAR(20) NOT NULL DEFAULT 'familia',
+    compartilhando TINYINT(1) NOT NULL DEFAULT 1,
+    ativo TINYINT(1) NOT NULL DEFAULT 1,
+    perm_usuarios TINYINT(1) NOT NULL DEFAULT 0,
+    criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    atualizado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_usuarios_usuario (usuario),
+    KEY idx_usuarios_empresa (empresa_id)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS grupos (
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    nome VARCHAR(120) NOT NULL,
+    criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    atualizado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_grupos_nome (nome)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS usuario_grupo (
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    usuario_id INT UNSIGNED NOT NULL,
+    grupo_id INT UNSIGNED NOT NULL,
+    criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_usuario_grupo (usuario_id, grupo_id)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS regioes (
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    empresa_id INT UNSIGNED NOT NULL,
+    nome VARCHAR(120) NOT NULL,
+    bairro VARCHAR(120) NULL,
+    rua VARCHAR(160) NULL,
+    complemento VARCHAR(160) NULL,
+    cidade VARCHAR(120) NULL,
+    ativo TINYINT(1) NOT NULL DEFAULT 1,
+    criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    atualizado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_regioes_empresa (empresa_id)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS usuario_regiao (
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    usuario_id INT UNSIGNED NOT NULL,
+    regiao_id INT UNSIGNED NOT NULL,
+    criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_usuario_regiao (usuario_id, regiao_id)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS escalas (
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    empresa_id INT UNSIGNED NOT NULL,
+    usuario_id INT UNSIGNED NOT NULL,
+    regiao_id INT UNSIGNED NOT NULL,
+    data DATE NOT NULL,
+    hora_inicio TIME NOT NULL,
+    hora_fim TIME NOT NULL,
+    ativo TINYINT(1) NOT NULL DEFAULT 1,
+    criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    atualizado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_escalas_usuario_data (usuario_id, data),
+    KEY idx_escalas_regiao_data (regiao_id, data)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS localizacoes (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    usuario_id INT UNSIGNED NOT NULL,
+    latitude DECIMAL(10,7) NOT NULL,
+    longitude DECIMAL(10,7) NOT NULL,
+    endereco VARCHAR(500) NULL,
+    ip VARCHAR(45) NULL,
+    dispositivo VARCHAR(120) NULL,
+    criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_localizacoes_usuario_criado (usuario_id, criado_em)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS pagamentos (
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    empresa_id INT UNSIGNED NOT NULL,
+    plano VARCHAR(30) NOT NULL,
+    dias INT UNSIGNED NOT NULL,
+    valor DECIMAL(12,2) NULL,
+    observacao VARCHAR(255) NULL,
+    criado_por INT UNSIGNED NULL,
+    criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_pagamentos_empresa (empresa_id)
+) ENGINE=InnoDB;

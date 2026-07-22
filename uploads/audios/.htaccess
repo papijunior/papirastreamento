@@ -1,0 +1,2 @@
+# Bloqueia listagem; arquivos de áudio podem ser servidos.
+Options -Indexes

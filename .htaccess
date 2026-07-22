@@ -1,0 +1,5 @@
+DirectoryIndex login.php index.php
+
+# Este app tem login próprio — não exige HTTP Basic do htdocs
+AuthType None
+Require all granted
